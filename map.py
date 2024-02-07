@@ -1,18 +1,24 @@
-import pandas as pd
 import folium
+import pandas as pd
+from ast import literal_eval
+import webbrowser
 
-# Read the CSV file with city names and coordinates
-df = pd.read_csv('data/data.csv')  # Replace 'your_file.csv' with your actual file path
+# Read CSV data
+df = pd.read_csv('data/data.csv')
 
-# Create a Folium map centered at an initial location
-map_center = [df['Coordinates'].apply(lambda x: x[0]).mean(), df['Coordinates'].apply(lambda x: x[1]).mean()]  # Adjust the center as needed
-mymap = folium.Map(location=map_center, zoom_start=4)
+# Create a Folium map
+my_map = folium.Map(location=("40","10"), zoom_start=10)
 
-# Add markers for each city
+# Add markers to the map
 for index, row in df.iterrows():
-    folium.Marker(location=[row['Latitude'], row['Longitude']], popup=row['City']).add_to(mymap)
+    try:
+        coordinates = literal_eval(row['Coordinates'])  # Convert string to tuple
+        folium.Marker([coordinates[0], coordinates[1]], popup=f"{row['City']},{row['Value']}").add_to(my_map)
+    except (ValueError, SyntaxError):
+        # Skip rows with malformed or missing coordinates
+        pass
 
-# Save the map as an HTML file or display it
-mymap.save('map.html')
-# OR
-# mymap
+# Save and open the map in the default web browser
+my_map.save('map.html')
+# Manually open the HTML file in the default web browser
+webbrowser.open('map.html', new=2)
